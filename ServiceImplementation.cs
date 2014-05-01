@@ -28,7 +28,7 @@ namespace WeatherService
                     _serviceHosts.ForEach(h => h.Open());
 
                     _signalR = WebApp.Start<Startup>(Settings.Default.SignalR_ListenUrl);
-                    Trace.Listeners.Remove("KatanaTraceListener");
+                    Trace.Listeners.Remove("HostingTraceListener");
 
                     Program.Session = new Session();
                     Program.Session.Initialize();

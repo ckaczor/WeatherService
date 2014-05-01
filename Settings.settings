@@ -1,0 +1,24 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="WeatherService" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="LogDatabase" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="LcdTemplate" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PollingInterval" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">00:00:01</Value>
+    </Setting>
+    <Setting Name="DatabaseFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:\WeatherCenter\WeatherCenter.sdf</Value>
+    </Setting>
+    <Setting Name="SignalR_ListenUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://*:9090</Value>
+    </Setting>
+    <Setting Name="SignalR_ConnectUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://localhost:9090</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

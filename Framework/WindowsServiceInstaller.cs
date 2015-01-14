@@ -204,6 +204,7 @@ namespace WeatherService.Framework
 				DisplayName = Configuration.DisplayName,
 				Description = Configuration.Description,
 				StartType = Configuration.StartMode,
+                ServicesDependedOn = new[] { "MSSQL$WEATHER" }
 			};
 
 			return result;

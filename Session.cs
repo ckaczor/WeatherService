@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using WeatherService.Data;
 using WeatherService.Devices;
 using WeatherService.SignalR;
 
@@ -39,7 +38,7 @@ namespace WeatherService
         public Session()
         {
             // Initialize the database
-            Database.Initialize(Settings.Default.DatabaseFile);
+            // DB CHANGE - Database.Initialize(Settings.Default.DatabaseFile);
 
             // Create the list of devices
             Devices = new List<DeviceBase>();

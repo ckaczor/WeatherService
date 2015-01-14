@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlServerCe;
 using System.Linq;
 using System.Runtime.Serialization;
 using WeatherService.Data;
@@ -71,23 +70,48 @@ namespace WeatherService.Values
             // Figure out the minimum time we want to load into history
             DateTime minimumTime = DateTime.Now.AddHours(-MaximumHours);
 
-            // Build a list for this device using the right value type and limit to the maximum number of hours
-            var readingList = from reading in Database.ReadingTable 
-                              where reading.DeviceId == ownerDevice.Id && reading.Type == valueType && reading.ReadTime >= minimumTime 
-                              select reading;
-
-            // Loop over all readings and reload them into the history
-            foreach (ReadingData readingData in readingList)
+            using (var weatherArchiveData = new WeatherArchiveData(minimumTime.Year))
             {
-                // Get the value from the reading
-                double dValue = readingData.Value;
+                var readingList =
+                    weatherArchiveData.Readings.Where(
+                        reading =>
+                            reading.DeviceId == ownerDevice.Id && reading.Type == (int) valueType &&
+                            reading.ReadTime >= minimumTime);
 
-                // Get the timestamp from the reading
-                DateTime dtTimestamp = readingData.ReadTime;
+                // Loop over all readings and reload them into the history
+                foreach (var readingData in readingList)
+                {
+                    // Get the value from the reading
+                    double dValue = readingData.Value;
 
-                // Set the value into the history
-                SetValue(dValue, dtTimestamp, false);
+                    // Get the timestamp from the reading
+                    DateTime dtTimestamp = readingData.ReadTime.LocalDateTime;
+
+                    // Set the value into the history
+                    SetValue(dValue, dtTimestamp, false);
+                }
             }
+
+            /*
+
+                                    // Build a list for this device using the right value type and limit to the maximum number of hours
+                                    var readingList = from reading in Database.ReadingTable 
+                                                      where reading.DeviceId == ownerDevice.Id && reading.Type == valueType && reading.ReadTime >= minimumTime 
+                                                      select reading;
+
+                                    // Loop over all readings and reload them into the history
+                                    foreach (ReadingData readingData in readingList)
+                                    {
+                                        // Get the value from the reading
+                                        double dValue = readingData.Value;
+
+                                        // Get the timestamp from the reading
+                                        DateTime dtTimestamp = readingData.ReadTime;
+
+                                        // Set the value into the history
+                                        SetValue(dValue, dtTimestamp, false);
+                                    }
+                         */
         }
 
         #endregion
@@ -151,7 +175,7 @@ namespace WeatherService.Values
             if ((Minimum.ReadTime == DateTime.MinValue) || (value < Minimum.Value) || (Minimum.Value.Equals(0) && bNoZero))
             {
                 bool bSetMinimum;				// Is this value the new minimum?
-                
+
                 if (bNoZero)
                     bSetMinimum = (value > 0) || (Minimum.ReadTime == DateTime.MinValue);
                 else
@@ -217,24 +241,19 @@ namespace WeatherService.Values
             if (save)
             {
                 // Save the reading
-                /*
-                ReadingData readingData = new ReadingData
-                                              {
-                                                  DeviceId = _ownerDevice.Id,
-                                                  Value = value,
-                                                  Type = _valueType,
-                                                  ReadTime = timeStamp
-                                              };
-                Database.ReadingTable.InsertOnSubmit(readingData);
-                Database.SaveChanges();
-                */
+                using (var weatherArchiveData = new WeatherArchiveData(timeStamp.Year))
+                {
+                    var reading = new Data.Reading
+                    {
+                        DeviceId = _ownerDevice.Id,
+                        Type = (int) ValueType,
+                        Value = value,
+                        ReadTime = timeStamp
+                    };
 
-                string query =
-                    string.Format(
-                        "INSERT INTO Reading (DeviceID, Type, Value, ReadTime) VALUES ({0}, {1:d}, {2}, '{3}')",
-                        _ownerDevice.Id, ValueType, value, timeStamp);
-                SqlCeCommand command = new SqlCeCommand(query, Database.Connection);
-                command.ExecuteScalar();
+                    weatherArchiveData.Readings.Add(reading);
+                    weatherArchiveData.SaveChanges();
+                }
 
                 // Update the minimum value
                 CheckMinimumValue(value, timeStamp);

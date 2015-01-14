@@ -1,4 +1,5 @@
-﻿using Common.Debug;
+﻿using System.Globalization;
+using Common.Debug;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace WeatherService
 
         static void Main(string[] args)
         {
-            Tracer.Initialize(@"C:\WeatherCenter\Logs", "WeatherService", Process.GetCurrentProcess().Id.ToString(), Environment.UserInteractive);
+            Tracer.Initialize(@"C:\WeatherCenter\Logs", "WeatherService", Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture), Environment.UserInteractive);
 
             if (args.Contains("-install", StringComparer.InvariantCultureIgnoreCase))
             {

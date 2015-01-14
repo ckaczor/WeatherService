@@ -10,20 +10,23 @@ using WeatherService.SignalR;
 
 namespace WeatherService
 {
-    [WindowsService("WeatherService", DisplayName = "Weather Reporting Service", Description = "", StartMode = ServiceStartMode.Automatic, ServiceAccount = ServiceAccount.LocalSystem)]
+    [WindowsService("WeatherReporting", DisplayName = "Weather Reporting", Description = "", StartMode = ServiceStartMode.Automatic, ServiceAccount = ServiceAccount.LocalSystem)]
     public class ServiceImplementation : IWindowsService
     {
-        private List<WebServiceHost> _serviceHosts = new List<WebServiceHost>();
+        private List<WebServiceHost> _serviceHosts;
         private IDisposable _signalR;
 
         public void OnStart(string[] args)
         {
-            using (new BeginEndTracer(GetType().Name, "OnStart"))
+            using (new BeginEndTracer(GetType().Name))
             {
                 try
                 {
-                    _serviceHosts.Add(new WebServiceHost(typeof(WeatherService)));
-                    _serviceHosts.Add(new WebServiceHost(typeof(WeatherServiceDuplex)));
+                    _serviceHosts = new List<WebServiceHost>
+                    {
+                        new WebServiceHost(typeof (WeatherService)),
+                        new WebServiceHost(typeof (WeatherServiceDuplex))
+                    };
 
                     _serviceHosts.ForEach(h => h.Open());
 
@@ -31,6 +34,7 @@ namespace WeatherService
                     Trace.Listeners.Remove("HostingTraceListener");
 
                     Program.Session = new Session();
+
                     Program.Session.Initialize();
                     Program.Session.StartRefresh();
                 }
@@ -44,14 +48,14 @@ namespace WeatherService
 
         public void OnStop()
         {
-            using (new BeginEndTracer(GetType().Name, "OnStop"))
+            using (new BeginEndTracer(GetType().Name))
             {
                 try
                 {
-                    _signalR.Dispose();
-
                     Program.Session.StopRefresh();
                     Program.Session.Terminate();
+
+                    _signalR.Dispose();
 
                     _serviceHosts.ForEach(h => h.Close());
                     _serviceHosts.Clear();

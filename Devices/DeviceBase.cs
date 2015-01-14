@@ -100,13 +100,19 @@ namespace WeatherService.Devices
         {
             try
             {
-                // Get the device data from the database
-                DeviceData deviceData = (from device in Database.DeviceTable where device.Address == _deviceAddress select device).First();
+                using (var weatherData = new WeatherData())
+                {
+                    // Get the device data from the database
+                    var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == _deviceAddress);
 
-                // Load the device data
-                _deviceId = deviceData.Id;
-                _displayName = deviceData.Name;
-                _refreshFrequency = deviceData.ReadInterval;
+                    if (deviceData == null)
+                        return false;
+
+                    // Load the device data
+                    _deviceId = deviceData.Id;
+                    _displayName = deviceData.Name;
+                    _refreshFrequency = deviceData.ReadInterval;
+                }
 
                 return true;
             }
@@ -118,12 +124,20 @@ namespace WeatherService.Devices
 
         internal bool Save()
         {
-            // Get the device data from the database
-            DeviceData deviceData = (from device in Database.DeviceTable where device.Address == _deviceAddress select device).First();
+            using (var weatherData = new WeatherData())
+            {
+                // Get the device data from the database
+                var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == _deviceAddress);
 
-            // Save device data
-            deviceData.Name = _displayName;
-            deviceData.ReadInterval = _refreshFrequency;
+                if (deviceData == null)
+                    return false;
+
+                // Save device data
+                deviceData.Name = _displayName;
+                deviceData.ReadInterval = _refreshFrequency;
+
+                weatherData.SaveChanges();
+            }
 
             return true;
         }
@@ -250,7 +264,7 @@ namespace WeatherService.Devices
         [DataMember]
         public List<WeatherValueType> SupportedValues
         {
-            get { return _valueList.Keys.ToList(); }   
+            get { return _valueList.Keys.ToList(); }
         }
 
         #endregion

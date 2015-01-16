@@ -70,13 +70,13 @@ namespace WeatherService.Devices
             _valueList = new Dictionary<WeatherValueType, Value>();
 
             // Store properties of the device
-            _deviceAddress = device.ID.Name;
+            _deviceAddress = device.Id.Name;
             _deviceType = deviceType;
             _session = session;
             _device = device;
 
             // Default the display name
-            _displayName = device.ID.Name;
+            _displayName = device.Id.Name;
 
             // Default the read interval
             if (Type == DeviceType.WindDirection || Type == DeviceType.WindSpeed)

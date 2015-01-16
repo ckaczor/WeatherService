@@ -81,7 +81,7 @@ namespace WeatherService
                         device.Errors++;
 
                         // TODO - Error event
-                        Tracer.WriteLine(String.Format("{0} - Error in device {1}: {2}", DateTime.Now, exception.DeviceID.Name, exception.Message));
+                        Tracer.WriteLine(String.Format("{0} - Error in device {1}: {2}", DateTime.Now, exception.DeviceId.Name, exception.Message));
                     }
                     catch (Exception exception)
                     {
@@ -116,7 +116,7 @@ namespace WeatherService
                     owIdentifier deviceID;                                  // Identifier for the other device
 
                     // Select this device
-                    owAdapter.Select(device.ID);
+                    owAdapter.Select(device.Id);
 
                     // Setup to try to open the pressure sensor file
                     fileEntry.Name = System.Text.Encoding.ASCII.GetBytes("8570");
@@ -152,7 +152,7 @@ namespace WeatherService
                     break;
 
                 case 0x1D:
-                    if (device.ID.Name == "4000000004A4081D")
+                    if (device.Id.Name == "4000000004A4081D")
                     {
                         // Create a new rain device and add it to the list
                         Devices.Add(new RainDevice(this, device));

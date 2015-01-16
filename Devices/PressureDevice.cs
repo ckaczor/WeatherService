@@ -152,7 +152,7 @@ namespace WeatherService.Devices
 
             PrepPioForWrite();
 
-            owAdapter.Select(_writeDevice.ID);
+            owAdapter.Select(_writeDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigWrite;
@@ -172,7 +172,7 @@ namespace WeatherService.Devices
 
             PrepPioForRead();
 
-            owAdapter.Select(_readDevice.ID);
+            owAdapter.Select(_readDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigRead;
@@ -192,7 +192,7 @@ namespace WeatherService.Devices
 
             PrepPioForWrite();
 
-            owAdapter.Select(_readDevice.ID);
+            owAdapter.Select(_readDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigPulseRead;

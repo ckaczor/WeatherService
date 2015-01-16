@@ -39,7 +39,7 @@ namespace WeatherService.Data
             DatabaseExists[year] = true;
         }
 
-        public virtual DbSet<Reading> Readings { get; set; }
+        public virtual DbSet<ReadingData> Readings { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

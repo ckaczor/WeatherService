@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace WeatherService.Data
 {
     [Table("Setting")]
-    public class Setting
+    public class SettingData
     {
         [Key]
         [StringLength(500)]

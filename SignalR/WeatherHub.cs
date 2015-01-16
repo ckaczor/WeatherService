@@ -1,13 +1,19 @@
-﻿using Microsoft.AspNet.SignalR;
-using Microsoft.AspNet.SignalR.Hubs;
+﻿using System.Collections.Generic;
+using Microsoft.AspNet.SignalR;
+using WeatherService.Devices;
+using WeatherService.Remote;
 
 namespace WeatherService.SignalR
 {
     public class WeatherHub : Hub
     {
-        public void Send(string message)
+        public List<DeviceBase> GetDevices()
         {
-            Clients.Others.addMessage(message);
+            var devices = WeatherServiceCommon.GetDevices();
+
+            //var json = JsonConvert.SerializeObject(devices);
+
+            return devices;
         }
     }
 }

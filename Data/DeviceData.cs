@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace WeatherService.Data
 {
     [Table("Device")]
-    public class Device
+    public class DeviceData
     {
         public int Id { get; set; }
 

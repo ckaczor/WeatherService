@@ -1,15 +1,13 @@
+using OneWireAPI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using OneWireAPI;
-using System.Collections.Generic;
 using WeatherService.Data;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
 {
-    #region Enumerations
-
     [DataContract]
     public enum DeviceType
     {
@@ -35,8 +33,6 @@ namespace WeatherService.Devices
         Rain
     }
 
-    #endregion
-
     [DataContract]
     [KnownType(typeof(HumidityDevice))]
     [KnownType(typeof(PressureDevice))]
@@ -46,55 +42,63 @@ namespace WeatherService.Devices
     [KnownType(typeof(WindSpeedDevice))]
     public class DeviceBase
     {
-        #region Member variables
+        protected Session Session;
 
-        protected int _deviceId;                                        // Device ID
-        protected string _deviceAddress;                                // Device key
-        protected Session _session;                                     // The root session
-        protected owDevice _device;                                     // The one wire device
-        protected DateTime _lastRead = DateTime.MinValue;               // When was the last refresh?
-        protected int _refreshFrequency;                                // How often should we refresh?
-        protected Dictionary<WeatherValueType, Value> _valueList;       // List of values		
-        protected string _displayName;                                  // Device display name
-        protected DeviceType _deviceType;                               // Type of device
-        protected long _operationCount;                                 // Number of operations
-        protected long _errorCount;                                     // Number of errors
+        protected internal Device OneWireDevice { get; protected set; }
 
-        #endregion
+        [DataMember]
+        public int Id { get; set; }
 
-        #region Constructor
+        [DataMember]
+        public string Address { get; set; }
 
-        public DeviceBase(Session session, owDevice device, DeviceType deviceType)
+        [DataMember]
+        public string DisplayName { get; set; }
+
+        [DataMember]
+        public DateTime LastRead { get; set; }
+
+        [DataMember]
+        public long Operations { get; set; }
+
+        [DataMember]
+        public long Errors { get; set; }
+
+        [DataMember]
+        public DeviceType Type { get; set; }
+
+        [DataMember]
+        public int RefreshFrequency { get; set; }
+
+        [DataMember]
+        public Dictionary<WeatherValueType, Value> Values { get; protected set; }
+
+        public DeviceBase(Session session, Device device, DeviceType deviceType)
         {
+            LastRead = DateTime.MinValue;
+
             // Initialize the value list
-            _valueList = new Dictionary<WeatherValueType, Value>();
+            Values = new Dictionary<WeatherValueType, Value>();
 
             // Store properties of the device
-            _deviceAddress = device.Id.Name;
-            _deviceType = deviceType;
-            _session = session;
-            _device = device;
+            Address = device.Id.Name;
+            Type = deviceType;
+            Session = session;
+            OneWireDevice = device;
 
             // Default the display name
-            _displayName = device.Id.Name;
+            DisplayName = device.Id.Name;
 
             // Default the read interval
-            if (Type == DeviceType.WindDirection || Type == DeviceType.WindSpeed)
-                _refreshFrequency = 1;
-            else
-                _refreshFrequency = 120;
+            RefreshFrequency = (Type == DeviceType.WindDirection || Type == DeviceType.WindSpeed) ? 1 : 120;
 
             // Load device data
-            bool bLoad = Load();
+            var load = Load();
 
             // If we couldn't load data then save the default data
-            if (!bLoad)
+            if (!load)
                 Save();
         }
-
-        #endregion
-
-        #region Save and load
 
         internal bool Load()
         {
@@ -103,15 +107,15 @@ namespace WeatherService.Devices
                 using (var weatherData = new WeatherData())
                 {
                     // Get the device data from the database
-                    var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == _deviceAddress);
+                    var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == Address);
 
                     if (deviceData == null)
                         return false;
 
                     // Load the device data
-                    _deviceId = deviceData.Id;
-                    _displayName = deviceData.Name;
-                    _refreshFrequency = deviceData.ReadInterval;
+                    Id = deviceData.Id;
+                    DisplayName = deviceData.Name;
+                    RefreshFrequency = deviceData.ReadInterval;
                 }
 
                 return true;
@@ -127,14 +131,14 @@ namespace WeatherService.Devices
             using (var weatherData = new WeatherData())
             {
                 // Get the device data from the database
-                var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == _deviceAddress);
+                var deviceData = weatherData.Devices.FirstOrDefault(d => d.Address == Address);
 
                 if (deviceData == null)
                     return false;
 
                 // Save device data
-                deviceData.Name = _displayName;
-                deviceData.ReadInterval = _refreshFrequency;
+                deviceData.Name = DisplayName;
+                deviceData.ReadInterval = RefreshFrequency;
 
                 weatherData.SaveChanges();
             }
@@ -142,13 +146,9 @@ namespace WeatherService.Devices
             return true;
         }
 
-        #endregion
-
-        #region Internal cache refresh logic
-
         internal bool DoCacheRefresh()
         {
-            switch (_refreshFrequency)
+            switch (RefreshFrequency)
             {
                 case -1:
                     // Do not refresh this device
@@ -161,7 +161,7 @@ namespace WeatherService.Devices
                     return true;
 
                 default:
-                    if (_lastRead == DateTime.MinValue)
+                    if (LastRead == DateTime.MinValue)
                     {
                         // If we have never refreshed before then do it now
                         RefreshCache();
@@ -170,10 +170,10 @@ namespace WeatherService.Devices
                     }
 
                     // Get the time since the last refresh
-                    TimeSpan oTimeSpan = DateTime.Now - _lastRead;
+                    var timeSpan = DateTime.Now - LastRead;
 
                     // If it has been long enough then refresh the cache
-                    if (oTimeSpan.TotalSeconds >= _refreshFrequency)
+                    if (timeSpan.TotalSeconds >= RefreshFrequency)
                     {
                         RefreshCache();
 
@@ -187,95 +187,18 @@ namespace WeatherService.Devices
         internal virtual void RefreshCache()
         {
             // Store the current time
-            _lastRead = DateTime.Now;
-        }
-
-        #endregion
-
-        #region Public properties
-
-        [DataMember]
-        public int Id
-        {
-            get { return _deviceId; }
-            set { _deviceId = value; }
-        }
-
-        [DataMember]
-        public string Address
-        {
-            get { return _deviceAddress; }
-            set { _deviceAddress = value; }
-        }
-
-        [DataMember]
-        public string DisplayName
-        {
-            get { return _displayName; }
-            set { _displayName = value; }
-        }
-
-        internal owDevice OneWireDevice
-        {
-            get { return _device; }
-        }
-
-        [DataMember]
-        public DateTime LastRead
-        {
-            get { return _lastRead; }
-            set { _lastRead = value; }
-        }
-
-        [DataMember]
-        public long Operations
-        {
-            get { return _operationCount; }
-            set { _operationCount = value; }
-        }
-
-        [DataMember]
-        public long Errors
-        {
-            get { return _errorCount; }
-            set { _errorCount = value; }
-        }
-
-        [DataMember]
-        public DeviceType Type
-        {
-            get { return _deviceType; }
-            set { _deviceType = value; }
-        }
-
-        [DataMember]
-        public int RefreshFrequency
-        {
-            get { return _refreshFrequency; }
-            set { _refreshFrequency = value; }
-        }
-
-        [DataMember]
-        public Dictionary<WeatherValueType, Value> Values
-        {
-            get { return _valueList; }
+            LastRead = DateTime.Now;
         }
 
         [DataMember]
         public List<WeatherValueType> SupportedValues
         {
-            get { return _valueList.Keys.ToList(); }
+            get { return Values.Keys.ToList(); }
         }
-
-        #endregion
-
-        #region Public methods
 
         public Value GetValue(WeatherValueType valueType)
         {
-            return _valueList[valueType];
+            return Values[valueType];
         }
-
-        #endregion
     }
 }

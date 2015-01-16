@@ -1,5 +1,5 @@
-using System.Runtime.Serialization;
 using OneWireAPI;
+using System.Runtime.Serialization;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
@@ -7,25 +7,16 @@ namespace WeatherService.Devices
     [DataContract]
     public class TemperatureDevice : DeviceBase
     {
-        #region Member variables
-			
-        private readonly Value _temperatureValue;       // Cached temperature
+        private readonly Value _temperatureValue;
 
-        #endregion
-
-        #region Constructor
-
-        public TemperatureDevice(Session session, owDevice device) : base(session, device, DeviceType.Temperature)
+        public TemperatureDevice(Session session, Device device)
+            : base(session, device, DeviceType.Temperature)
         {
             // Create the new value object
             _temperatureValue = new Value(WeatherValueType.Temperature, this);
 
-            _valueList.Add(WeatherValueType.Temperature, _temperatureValue);
+            Values.Add(WeatherValueType.Temperature, _temperatureValue);
         }
-
-        #endregion
-
-        #region Internal methods
 
         internal override void RefreshCache()
         {
@@ -38,12 +29,10 @@ namespace WeatherService.Devices
         internal double ReadTemperature()
         {
             // Cast the device to its specific type
-            owDeviceFamily10 temperatureDevice = (owDeviceFamily10) _device;
+            var temperatureDevice = (DeviceFamily10) OneWireDevice;
 
             // Return the temperature from the device
             return temperatureDevice.GetTemperature();
         }
-
-        #endregion
     }
 }

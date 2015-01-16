@@ -121,9 +121,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversion.cs" />
-    <Compile Include="Data\Device.cs" />
-    <Compile Include="Data\Reading.cs" />
-    <Compile Include="Data\Setting.cs" />
+    <Compile Include="Data\DeviceData.cs" />
+    <Compile Include="Data\ReadingData.cs" />
+    <Compile Include="Data\SettingData.cs" />
     <Compile Include="Data\WeatherArchiveData.cs" />
     <Compile Include="Data\WeatherData.cs" />
     <Compile Include="Devices\DeviceBase.cs" />

@@ -1,17 +1,15 @@
-using System.Runtime.Serialization;
 using OneWireAPI;
+using System.Runtime.Serialization;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
 {
-    #region Enumerations
-
     [DataContract]
     public enum WindDirection
     {
         [EnumMember]
         North,
-        
+
         [EnumMember]
         NorthNorthEast,
 
@@ -61,13 +59,9 @@ namespace WeatherService.Devices
         Unknown = -1
     }
 
-    #endregion
-
     [DataContract]
     public class WindDirectionDevice : DeviceBase
     {
-        #region Constants
-
         private const double WindowOffset = 0.7;
 
         private readonly double[,] _lookupTable = {	{4.66, 4.66, 2.38, 4.66},			// 0
@@ -87,44 +81,32 @@ namespace WeatherService.Devices
                                             	    {4.66, 4.66, 4.66, 2.38},			// 14
                                             	    {4.66, 4.66, 3.18, 3.18}	};		// 15
 
-        #endregion
-
-        #region Member variables
-
         private readonly Value _directionValue;             // Cached direction value
 
         private bool _initialized;                          // Has the device been initialized
 
-        #endregion
-
-        #region Constructor
-
-        public WindDirectionDevice(Session session, owDevice device)
+        public WindDirectionDevice(Session session, Device device)
             : base(session, device, DeviceType.WindDirection)
         {
             // Create the value
             _directionValue = new Value(WeatherValueType.WindDirection, this);
 
-            _valueList.Add(WeatherValueType.WindDirection, _directionValue);
+            Values.Add(WeatherValueType.WindDirection, _directionValue);
         }
-
-        #endregion
-
-        #region Internal methods
 
         internal override void RefreshCache()
         {
-            _directionValue.SetValue((double)ReadDirection());
+            _directionValue.SetValue((double) ReadDirection());
 
             base.RefreshCache();
         }
 
         internal WindDirection ReadDirection()
         {
-            int direction = -1;         // Decoded direction
+            var direction = -1;         // Decoded direction
 
             // Cast the device as the specific device
-            owDeviceFamily20 voltage = (owDeviceFamily20)_device;
+            var voltage = (DeviceFamily20) OneWireDevice;
 
             // If we haven't initialized the device we need to do it now
             if (!_initialized)
@@ -137,10 +119,10 @@ namespace WeatherService.Devices
             }
 
             // Get the array of voltages from the device
-            double[] voltages = voltage.GetVoltages();
+            var voltages = voltage.GetVoltages();
 
             // Loop over the lookup table to find the direction that maps to the voltages
-            for (int i = 0; i < 16; i++)
+            for (var i = 0; i < 16; i++)
             {
                 if (((voltages[0] <= _lookupTable[i, 0] + WindowOffset) && (voltages[0] >= _lookupTable[i, 0] - WindowOffset)) &&
                     ((voltages[1] <= _lookupTable[i, 1] + WindowOffset) && (voltages[1] >= _lookupTable[i, 1] - WindowOffset)) &&
@@ -153,9 +135,7 @@ namespace WeatherService.Devices
             }
 
             // Return the direction
-            return (WindDirection)direction;
+            return (WindDirection) direction;
         }
-
-        #endregion
     }
 }

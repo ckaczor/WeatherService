@@ -44,7 +44,7 @@ namespace WeatherService
             Devices = new List<DeviceBase>();
 
             // Create a new session
-            OneWireSession = new owSession();
+            OneWireSession = new OneWireAPI.Session();
         }
 
         #endregion
@@ -75,7 +75,7 @@ namespace WeatherService
                             device.Operations++;
                         }
                     }
-                    catch (owException exception)
+                    catch (OneWireException exception)
                     {
                         DeviceErrors++;
                         device.Errors++;
@@ -104,7 +104,7 @@ namespace WeatherService
             }
         }
 
-        private void AddWeatherDevice(owDevice device)
+        private void AddWeatherDevice(Device device)
         {
             // TODO - Handle device mapping for multiple devices that use the same family code
 
@@ -113,10 +113,10 @@ namespace WeatherService
                 case 0x12:
                     TMEX.FileEntry fileEntry = new TMEX.FileEntry();        // Entry to describe a file
                     byte[] fileData = new byte[8];                          // File data
-                    owIdentifier deviceID;                                  // Identifier for the other device
+                    Identifier deviceID;                                  // Identifier for the other device
 
                     // Select this device
-                    owAdapter.Select(device.Id);
+                    Adapter.Select(device.Id);
 
                     // Setup to try to open the pressure sensor file
                     fileEntry.Name = System.Text.Encoding.ASCII.GetBytes("8570");
@@ -135,10 +135,10 @@ namespace WeatherService
                         TMEX.TMCloseFile(OneWireSession.SessionHandle, OneWireSession.StateBuffer, fileHandle);
 
                         // Create an ID so we can get the string name
-                        deviceID = new owIdentifier(fileData);
+                        deviceID = new Identifier(fileData);
 
                         // Find the other device
-                        owDevice otherDevice = (owDevice) OneWireSession.Network.Devices[deviceID.Name];
+                        Device otherDevice = (Device) OneWireSession.Network.Devices[deviceID.Name];
 
                         // Create a new pressure device and it to the the list
                         Devices.Add(new PressureDevice(this, device, otherDevice));
@@ -217,7 +217,7 @@ namespace WeatherService
             //FireInitialized();
         }      
 
-        private void HandleDeviceAdded(owDevice device)
+        private void HandleDeviceAdded(Device device)
         {
             AddWeatherDevice(device);
         }
@@ -270,7 +270,7 @@ namespace WeatherService
 
         public long DeviceErrors { get; private set; }
 
-        internal owSession OneWireSession { get; private set; }
+        internal OneWireAPI.Session OneWireSession { get; private set; }
 
         #endregion
     }

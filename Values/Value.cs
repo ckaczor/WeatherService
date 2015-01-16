@@ -243,7 +243,7 @@ namespace WeatherService.Values
                 // Save the reading
                 using (var weatherArchiveData = new WeatherArchiveData(timeStamp.Year))
                 {
-                    var reading = new Data.Reading
+                    var reading = new Data.ReadingData
                     {
                         DeviceId = _ownerDevice.Id,
                         Type = (int) ValueType,

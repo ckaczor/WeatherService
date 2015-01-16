@@ -9,8 +9,8 @@ namespace WeatherService.Data
         {
         }
 
-        public virtual DbSet<Device> Devices { get; set; }
-        public virtual DbSet<Setting> Settings { get; set; }
+        public virtual DbSet<DeviceData> Devices { get; set; }
+        public virtual DbSet<SettingData> Settings { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

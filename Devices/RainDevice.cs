@@ -1,5 +1,5 @@
-using System.Runtime.Serialization;
 using OneWireAPI;
+using System.Runtime.Serialization;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
@@ -7,8 +7,6 @@ namespace WeatherService.Devices
     [DataContract]
     public class RainDevice : DeviceBase
     {
-        #region Member variables
-
         private readonly Value _recentValue;
 
         private readonly uint _clearedCount;        // Counter at least clear
@@ -17,34 +15,26 @@ namespace WeatherService.Devices
         private uint _startupCount;                 // Counter at startup
         private bool _initialized;
 
-        #endregion
-
-        #region Constructor
-
-        public RainDevice(Session session, owDevice device)
+        public RainDevice(Session session, Device device)
             : base(session, device, DeviceType.Rain)
         {
             // TODO - Read the count as of the last counter clearing
             _clearedCount = 150;
 
             // Get a reference to the device
-            owDeviceFamily1D counter = (owDeviceFamily1D) _device;
+            var counter = (DeviceFamily1D) OneWireDevice;
 
             // Get the current counter
             _lastCount = counter.GetCounter(15);
 
             // Setup the rain value
             _recentValue = new Value(WeatherValueType.Rain, this);
-            _valueList.Add(WeatherValueType.Rain, _recentValue);
+            Values.Add(WeatherValueType.Rain, _recentValue);
         }
-
-        #endregion
-
-        #region Internal methods
 
         internal override void RefreshCache()
         {
-            double recentRain = ReadRecentRainfall();
+            var recentRain = ReadRecentRainfall();
 
             _recentValue.SetValue(recentRain);
 
@@ -54,7 +44,7 @@ namespace WeatherService.Devices
         internal double ReadSessionRainfall()
         {
             // Get a reference to the device
-            owDeviceFamily1D counter = (owDeviceFamily1D) _device;
+            var counter = (DeviceFamily1D) OneWireDevice;
 
             // If we haven't initialized then do it now
             if (!_initialized)
@@ -66,7 +56,7 @@ namespace WeatherService.Devices
             }
 
             // Get the current counter
-            uint currentCount = counter.GetCounter(15);
+            var currentCount = counter.GetCounter(15);
 
             // Get the amount of rain since the last check
             return (currentCount - _startupCount) * 0.2;
@@ -75,27 +65,27 @@ namespace WeatherService.Devices
         internal double ReadRecentRainfall()
         {
             // Get a reference to the device
-            owDeviceFamily1D counter = (owDeviceFamily1D) _device;
+            var counter = (DeviceFamily1D) OneWireDevice;
 
             // Get the current counter
-            uint currentCount = counter.GetCounter(15);
+            var currentCount = counter.GetCounter(15);
 
             // Get the amount of rain since the last check
-            double rainValue = (currentCount - _lastCount) * 0.2;
+            var rainValue = (currentCount - _lastCount) * 0.2;
 
             // Store the last counter
             _lastCount = currentCount;
-            
+
             return rainValue;
         }
 
         internal double ReadTotalRainfall()
         {
             // Get a reference to the device
-            owDeviceFamily1D counter = (owDeviceFamily1D) _device;
+            var counter = (DeviceFamily1D) OneWireDevice;
 
             // Get the current counter
-            uint currentCount = counter.GetCounter(15);
+            var currentCount = counter.GetCounter(15);
 
             // Get the amount of rain since the last check
             double rainValue = (currentCount - _clearedCount) * 0.2F;
@@ -105,7 +95,5 @@ namespace WeatherService.Devices
 
             return rainValue;
         }
-
-        #endregion
     }
 }

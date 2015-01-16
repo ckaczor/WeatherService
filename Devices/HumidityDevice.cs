@@ -1,5 +1,5 @@
-using System.Runtime.Serialization;
 using OneWireAPI;
+using System.Runtime.Serialization;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
@@ -7,27 +7,18 @@ namespace WeatherService.Devices
     [DataContract]
     public class HumidityDevice : DeviceBase
     {
-        #region Member variables
-
         private readonly Value _temperatureValue;
         private readonly Value _humidityValue;
 
-        #endregion
-
-        #region Constructor
-
-        public HumidityDevice(Session session, owDevice device) : base(session, device, DeviceType.Humidity)
+        public HumidityDevice(Session session, Device device)
+            : base(session, device, DeviceType.Humidity)
         {
             _temperatureValue = new Value(WeatherValueType.Temperature, this);
             _humidityValue = new Value(WeatherValueType.Humidity, this);
 
-            _valueList.Add(WeatherValueType.Temperature, _temperatureValue);
-            _valueList.Add(WeatherValueType.Humidity, _humidityValue);
+            Values.Add(WeatherValueType.Temperature, _temperatureValue);
+            Values.Add(WeatherValueType.Humidity, _humidityValue);
         }
-
-        #endregion
-
-        #region Internal methods
 
         internal override void RefreshCache()
         {
@@ -40,33 +31,31 @@ namespace WeatherService.Devices
         internal double ReadTemperature()
         {
             // Cast the device to its specific type
-            owDeviceFamily26 oDevice = (owDeviceFamily26) _device;
+            var device = (DeviceFamily26) OneWireDevice;
 
             // Return the temperature from the device
-            return oDevice.GetTemperature();
+            return device.GetTemperature();
         }
 
         internal double ReadHumidity()
         {
             // Cast the device to its specific type
-            owDeviceFamily26 oDevice = (owDeviceFamily26) _device;
+            var device = (DeviceFamily26) OneWireDevice;
 
             // Get the supply voltage
-            double dSupplyVoltage = oDevice.GetSupplyVoltage();
+            var supplyVoltage = device.GetSupplyVoltage();
 
             // Get the output voltage
-            double dOutputVoltage = oDevice.GetOutputVoltage();
+            var outputVoltage = device.GetOutputVoltage();
 
             // Get the temperature
-            double dTemperature = oDevice.GetTemperature();
+            var temperature = device.GetTemperature();
 
             // Calculate the humidity
-            double dHumidity = (((dOutputVoltage / dSupplyVoltage) - 0.16F) / 0.0062F) / (1.0546F - 0.00216F * dTemperature);
+            var humidity = (((outputVoltage / supplyVoltage) - 0.16F) / 0.0062F) / (1.0546F - 0.00216F * temperature);
 
             // Return the result
-            return dHumidity;
+            return humidity;
         }
-
-        #endregion
     }
 }

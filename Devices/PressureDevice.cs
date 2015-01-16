@@ -1,7 +1,7 @@
+using OneWireAPI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using OneWireAPI;
 using WeatherService.Values;
 
 namespace WeatherService.Devices
@@ -9,32 +9,26 @@ namespace WeatherService.Devices
     [DataContract]
     public class PressureDevice : DeviceBase
     {
-        #region Constants
-
-        private readonly byte[] _resetSequence = new byte[] { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0 };              // Binary sequence to reset the device
-        private readonly byte[] _readWord1Sequence = new byte[] { 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0 };                                     // Binary sequence to read word 1
-        private readonly byte[] _readWord2Sequence = new byte[] { 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0 };                                     // Binary sequence to read word 2
-        private readonly byte[] _readWord3Sequence = new byte[] { 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0 };                                     // Binary sequence to read word 3
-        private readonly byte[] _readWord4Sequence = new byte[] { 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0 };                                     // Binary sequence to read word 4
-        private readonly byte[] _readPressureSequence = new byte[] { 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0 };                                     // Binary sequence to read pressure
-        private readonly byte[] _readTemperatureSequence = new byte[] { 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0 };                                  // Binary sequence to read temperature
+        private readonly byte[] _resetSequence = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0 };              // Binary sequence to reset the device
+        private readonly byte[] _readWord1Sequence = { 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0 };                                     // Binary sequence to read word 1
+        private readonly byte[] _readWord2Sequence = { 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0 };                                     // Binary sequence to read word 2
+        private readonly byte[] _readWord3Sequence = { 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0 };                                     // Binary sequence to read word 3
+        private readonly byte[] _readWord4Sequence = { 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0 };                                     // Binary sequence to read word 4
+        private readonly byte[] _readPressureSequence = { 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0 };                                     // Binary sequence to read pressure
+        private readonly byte[] _readTemperatureSequence = { 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0 };                                  // Binary sequence to read temperature
 
         private const byte ChannelAccessCommand = 0xF5;
         private const byte ConfigRead = 0xEC;
         private const byte ConfigWrite = 0x8C;
         private const byte ConfigPulseRead = 0xC8;
 
-        #endregion
-
-        #region Member variables
-
-        private readonly owDeviceFamily12 _writeDevice;         // Device for writing to the pressure sensor
-        private readonly owDeviceFamily12 _readDevice;          // Device for reading from the pressure sensor
+        private readonly DeviceFamily12 _writeDevice;           // Device for writing to the pressure sensor
+        private readonly DeviceFamily12 _readDevice;            // Device for reading from the pressure sensor
         private readonly Value _temperatureValue;               // Last temperature (degrees C)
         private readonly Value _pressureValue;                  // Last pressure (mbar)
 
         private bool _readCalibration;                          // Have we read the calibration constants?
-        
+
         private int _calibration1;                              // Calibration constant
         private int _calibration2;                              // Calibration constant
         private int _calibration3;                              // Calibration constant
@@ -42,93 +36,86 @@ namespace WeatherService.Devices
         private int _calibration5;                              // Calibration constant
         private int _calibration6;                              // Calibration constant
 
-        #endregion
-
-        #region Constructor
-
-        public PressureDevice(Session session, owDevice firstDevice, owDevice secondDevice) : base(session, firstDevice, DeviceType.Pressure)
+        public PressureDevice(Session session, Device firstDevice, Device secondDevice)
+            : base(session, firstDevice, DeviceType.Pressure)
         {
             // Get both devices
-            owDeviceFamily12 oDevice1 = (owDeviceFamily12) firstDevice;
-            owDeviceFamily12 oDevice2 = (owDeviceFamily12) secondDevice;
+            var device1 = (DeviceFamily12) firstDevice;
+            var device2 = (DeviceFamily12) secondDevice;
 
             // Get the state of both devices
-            byte[] baState1 = oDevice1.ReadDevice();
-            byte[] baState2 = oDevice2.ReadDevice();
+            var state1 = device1.ReadDevice();
+            var state2 = device2.ReadDevice();
 
             // If both devices have the same power state then this isn't a proper pressure device
-            if (oDevice1.IsPowered(baState1) == oDevice2.IsPowered(baState2))
+            if (device1.IsPowered(state1) == device2.IsPowered(state2))
             {
                 // Throw an exception
                 throw new Exception("Invalid TAI8570");
             }
 
             // The powered device is the write device - sort this out and remember which is which
-            if (oDevice1.IsPowered(baState1))
+            if (device1.IsPowered(state1))
             {
-                _writeDevice = oDevice1;
-                _readDevice = oDevice2;
+                _writeDevice = device1;
+                _readDevice = device2;
             }
             else
             {
-                _writeDevice = oDevice2;
-                _readDevice = oDevice1;
+                _writeDevice = device2;
+                _readDevice = device1;
             }
 
             _temperatureValue = new Value(WeatherValueType.Temperature, this);
             _pressureValue = new Value(WeatherValueType.Pressure, this);
 
-            _valueList.Add(WeatherValueType.Temperature, _temperatureValue);
-            _valueList.Add(WeatherValueType.Pressure, _pressureValue);
+            Values.Add(WeatherValueType.Temperature, _temperatureValue);
+            Values.Add(WeatherValueType.Pressure, _pressureValue);
         }
-
-        #endregion
-
-        #region PIO methods
 
         private void PrepPioForWrite()
         {
-            byte[] baState = _writeDevice.ReadDevice();
-            _writeDevice.SetLatchState(0, true, baState);
-            _writeDevice.SetLatchState(1, false, baState);
-            _writeDevice.WriteDevice(baState);
+            var state = _writeDevice.ReadDevice();
+            _writeDevice.SetLatchState(0, true, state);
+            _writeDevice.SetLatchState(1, false, state);
+            _writeDevice.WriteDevice(state);
 
-            baState = _readDevice.ReadDevice();
-            _readDevice.SetLatchState(0, false, baState);
-            _readDevice.SetLatchState(1, false, baState);
-            _readDevice.WriteDevice(baState);
+            state = _readDevice.ReadDevice();
+            _readDevice.SetLatchState(0, false, state);
+            _readDevice.SetLatchState(1, false, state);
+            _readDevice.WriteDevice(state);
         }
 
         private void PrepPioForRead()
         {
-            byte[] baState = _readDevice.ReadDevice();
-            _readDevice.SetLatchState(0, false, baState);
-            _readDevice.SetLatchState(1, false, baState);
-            _readDevice.WriteDevice(baState);
+            var state = _readDevice.ReadDevice();
+            _readDevice.SetLatchState(0, false, state);
+            _readDevice.SetLatchState(1, false, state);
+            _readDevice.WriteDevice(state);
 
-            baState = _writeDevice.ReadDevice();
-            _writeDevice.SetLatchState(0, false, baState);
-            _writeDevice.SetLatchState(1, false, baState);
-            _writeDevice.WriteDevice(baState);
+            state = _writeDevice.ReadDevice();
+            _writeDevice.SetLatchState(0, false, state);
+            _writeDevice.SetLatchState(1, false, state);
+            _writeDevice.WriteDevice(state);
         }
 
         private bool OpenPio(int pio)
         {
-            byte[] baWriteState = _writeDevice.ReadDevice();
-            byte[] baReadState = _readDevice.ReadDevice();
+            var writeState = _writeDevice.ReadDevice();
+            var readDevice = _readDevice.ReadDevice();
 
-            _writeDevice.SetLatchState(pio, false, baWriteState);
-            _readDevice.SetLatchState(pio, false, baReadState);
+            _writeDevice.SetLatchState(pio, false, writeState);
+            _readDevice.SetLatchState(pio, false, readDevice);
 
-            _writeDevice.WriteDevice(baWriteState);
-            _writeDevice.WriteDevice(baReadState);
+            _writeDevice.WriteDevice(writeState);
+            _writeDevice.WriteDevice(readDevice);
 
-            baWriteState = _writeDevice.ReadDevice();
-            baReadState = _readDevice.ReadDevice();
+            writeState = _writeDevice.ReadDevice();
+            readDevice = _readDevice.ReadDevice();
 
-            bool bResult = (_writeDevice.GetLevel(pio, baWriteState) && _readDevice.GetLevel(pio, baReadState));
+            var result = (_writeDevice.GetLevel(pio, writeState) && _readDevice.GetLevel(pio, readDevice));
 
-            return bResult;
+            return result;
         }
 
         private bool OpenPioA()
@@ -141,98 +128,90 @@ namespace WeatherService.Devices
             return OpenPio(1);
         }
 
-        #endregion
-
-        #region Private methods
-
         private bool SetupForWrite()
         {
-            byte[] data = new byte[3];          // Data buffer to send over the network
+            var data = new byte[3];          // Data buffer to send over the network
             short dataCount = 0;                // How many bytes of data to send
 
             PrepPioForWrite();
 
-            owAdapter.Select(_writeDevice.Id);
+            Adapter.Select(_writeDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigWrite;
             data[dataCount++] = 0xFF;
 
-            owAdapter.SendBlock(data, dataCount);
+            Adapter.SendBlock(data, dataCount);
 
-            owAdapter.ReadByte();
+            Adapter.ReadByte();
 
             return true;
         }
 
         private bool SetupForRead()
         {
-            byte[] data = new byte[3];          // Data buffer to send over the network
+            var data = new byte[3];          // Data buffer to send over the network
             short dataCount = 0;                // How many bytes of data to send
 
             PrepPioForRead();
 
-            owAdapter.Select(_readDevice.Id);
+            Adapter.Select(_readDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigRead;
             data[dataCount++] = 0xFF;
 
-            owAdapter.SendBlock(data, dataCount);
+            Adapter.SendBlock(data, dataCount);
 
-            owAdapter.ReadByte();
+            Adapter.ReadByte();
 
             return true;
         }
 
         private bool SetupForPulseRead()
         {
-            byte[] data = new byte[3];          // Data buffer to send over the network
+            var data = new byte[3];          // Data buffer to send over the network
             short dataCount = 0;                // How many bytes of data to send
 
             PrepPioForWrite();
 
-            owAdapter.Select(_readDevice.Id);
+            Adapter.Select(_readDevice.Id);
 
             data[dataCount++] = ChannelAccessCommand;
             data[dataCount++] = ConfigPulseRead;
             data[dataCount++] = 0xFF;
 
-            owAdapter.SendBlock(data, dataCount);
+            Adapter.SendBlock(data, dataCount);
 
-            owAdapter.ReadByte();
+            Adapter.ReadByte();
 
             return true;
         }
 
         private bool WriteBitSequence(IEnumerable<byte> sequence)
         {
-            bool result = false;
+            if (!SetupForWrite())
+                return false;
 
-            if (SetupForWrite())
+            foreach (var t in sequence)
             {
-                foreach (byte t in sequence)
-                {
-                    SendBit(t != 0);
-                }
-
-                SendBit(false);
-
-                result = true;
+                SendBit(t != 0);
             }
 
-            return result;
+            SendBit(false);
+
+            return true;
         }
 
         private byte[] ReadBitSequence(IEnumerable<byte> sequence)
         {
-            byte[] result = new byte[16];
+            var result = new byte[16];
 
-            if (WriteBitSequence(sequence))
-            {
-                result = GetBits(16);
-                OpenPioB();
-            }
+            if (!WriteBitSequence(sequence))
+                return result;
+
+            result = GetBits(16);
+            OpenPioB();
 
             return result;
         }
@@ -241,45 +220,45 @@ namespace WeatherService.Devices
         {
             if (value)
             {
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(1);
-                owAdapter.SendBit(1);
-                owAdapter.SendBit(1);
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(0);
+                Adapter.SendBit(0);
+                Adapter.SendBit(1);
+                Adapter.SendBit(1);
+                Adapter.SendBit(1);
+                Adapter.SendBit(0);
+                Adapter.SendBit(0);
             }
             else
             {
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(1);
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(0);
-                owAdapter.SendBit(0);
+                Adapter.SendBit(0);
+                Adapter.SendBit(0);
+                Adapter.SendBit(1);
+                Adapter.SendBit(0);
+                Adapter.SendBit(0);
+                Adapter.SendBit(0);
             }
         }
 
         private static bool ReadBit()
         {
-            owAdapter.ReadBit();			// Read PIO A #1
-            owAdapter.ReadBit();			// Read PIO B #1
-            owAdapter.ReadBit();			// Read PIO A #2
-            owAdapter.ReadBit();			// Read PIO B #2
-            owAdapter.ReadBit();			// Read PIO A #3
-            owAdapter.ReadBit();			// Read PIO B #3
-            owAdapter.ReadBit();			// Read PIO A #4
-            short data = owAdapter.ReadBit();
+            Adapter.ReadBit();			// Read PIO A #1
+            Adapter.ReadBit();			// Read PIO B #1
+            Adapter.ReadBit();			// Read PIO A #2
+            Adapter.ReadBit();			// Read PIO B #2
+            Adapter.ReadBit();			// Read PIO A #3
+            Adapter.ReadBit();			// Read PIO B #3
+            Adapter.ReadBit();			// Read PIO A #4
+            var data = Adapter.ReadBit();
 
-            bool result = (data == 1);
+            var result = (data == 1);
 
-            owAdapter.SendBit(0); 			// Write PIO A #1
-            owAdapter.SendBit(1); 			// Write PIO B #1
-            owAdapter.SendBit(0); 			// Write PIO A #2
-            owAdapter.SendBit(1); 			// Write PIO B #2
-            owAdapter.SendBit(1); 			// Write PIO A #3
-            owAdapter.SendBit(1); 			// Write PIO B #3
-            owAdapter.SendBit(1); 			// Write PIO A #4
-            owAdapter.SendBit(1); 			// Write PIO B #4
+            Adapter.SendBit(0); 			// Write PIO A #1
+            Adapter.SendBit(1); 			// Write PIO B #1
+            Adapter.SendBit(0); 			// Write PIO A #2
+            Adapter.SendBit(1); 			// Write PIO B #2
+            Adapter.SendBit(1); 			// Write PIO A #3
+            Adapter.SendBit(1); 			// Write PIO B #3
+            Adapter.SendBit(1); 			// Write PIO A #4
+            Adapter.SendBit(1); 			// Write PIO B #4
 
             return result;
         }
@@ -291,16 +270,16 @@ namespace WeatherService.Devices
 
         private bool CheckConversionStatus()
         {
-            int i;
+            int index;
 
-            if (!SetupForPulseRead()) 
+            if (!SetupForPulseRead())
                 return false;
 
-            for (i = 0; i < 100; i++)
-                if (owAdapter.SendBit(0) == 0) 
+            for (index = 0; index < 100; index++)
+                if (Adapter.SendBit(0) == 0)
                     break;
 
-            return (i < 100);
+            return (index < 100);
         }
 
         private bool ReadCalibrationConstants()
@@ -309,13 +288,13 @@ namespace WeatherService.Devices
 
             if (!Reset()) return false;
 
-            byte[] word1 = ReadBitSequence(_readWord1Sequence);
+            var word1 = ReadBitSequence(_readWord1Sequence);
 
-            byte[] word2 = ReadBitSequence(_readWord2Sequence);
+            var word2 = ReadBitSequence(_readWord2Sequence);
 
-            byte[] word3 = ReadBitSequence(_readWord3Sequence);
+            var word3 = ReadBitSequence(_readWord3Sequence);
 
-            byte[] word4 = ReadBitSequence(_readWord4Sequence);
+            var word4 = ReadBitSequence(_readWord4Sequence);
 
             _calibration1 = _calibration2 = _calibration3 = _calibration4 = _calibration5 = _calibration6 = 0;
 
@@ -383,17 +362,17 @@ namespace WeatherService.Devices
 
         private byte[] GetBits(byte bitCount)
         {
-            byte[] result = new byte[bitCount];
+            var result = new byte[bitCount];
 
-            if (SetupForRead())
+            if (!SetupForRead())
+                return result;
+
+            for (var index = 0; index < bitCount; index++)
             {
-                for (int i = 0; i < bitCount; i++)
-                {
-                    if (ReadBit())
-                        result[i] = 1;
-                    else
-                        result[i] = 0;
-                }
+                if (ReadBit())
+                    result[index] = 1;
+                else
+                    result[index] = 0;
             }
 
             return result;
@@ -401,30 +380,30 @@ namespace WeatherService.Devices
 
         private int ReadValue(IEnumerable<byte> sequence)
         {
-            int result = 0;
+            var result = 0;
 
-            if (!Reset()) 
+            if (!Reset())
                 return 0;
 
-            if (!WriteBitSequence(sequence)) 
+            if (!WriteBitSequence(sequence))
                 return 0;
 
-            if (!CheckConversionStatus()) 
+            if (!CheckConversionStatus())
                 return 0;
 
-            if (!OpenPioA()) 
+            if (!OpenPioA())
                 return 0;
 
-            byte[] data = GetBits(16);
+            var data = GetBits(16);
 
-            if (!OpenPioB()) 
+            if (!OpenPioB())
                 return 0;
 
-            for (int i = 0; i < 16; i++)
+            for (var index = 0; index < 16; index++)
             {
                 result = (result << 1);
 
-                if (data[i] == 1)
+                if (data[index] == 1)
                     result = result + 1;
             }
 
@@ -433,16 +412,16 @@ namespace WeatherService.Devices
 
         private bool ReadSensorData()
         {
-            int pressure = ReadValue(_readPressureSequence);
-            int temperature = ReadValue(_readTemperatureSequence);
+            var pressure = ReadValue(_readPressureSequence);
+            var temperature = ReadValue(_readTemperatureSequence);
 
             double calibrationTemperature = (8 * _calibration5) + 20224;
-            double temperatureDifference = temperature - calibrationTemperature;
+            var temperatureDifference = temperature - calibrationTemperature;
             _temperatureValue.SetValue(20 + ((temperatureDifference * (_calibration6 + 50)) / 10240));
 
-            double offset = _calibration2 * 4 + (((_calibration4 - 512) * temperatureDifference) / 4096);
-            double sensitivity = _calibration1 + ((_calibration3 * temperatureDifference) / 1024) + 24576;
-            double actualPressure = ((sensitivity * (pressure - 7168)) / 16384) - offset;
+            var offset = _calibration2 * 4 + (((_calibration4 - 512) * temperatureDifference) / 4096);
+            var sensitivity = _calibration1 + ((_calibration3 * temperatureDifference) / 1024) + 24576;
+            var actualPressure = ((sensitivity * (pressure - 7168)) / 16384) - offset;
 
             _pressureValue.SetValue((actualPressure / 32) + 250);
 
@@ -463,18 +442,12 @@ namespace WeatherService.Devices
                 throw new Exception("Error reading Pressure and Temperature values");
         }
 
-        #endregion
-
-        #region Internal methods
-
         internal override void RefreshCache()
         {
             ReadDevice();
 
             base.RefreshCache();
         }
-
-        #endregion
 
         #region Elevation code (not used yet)
 

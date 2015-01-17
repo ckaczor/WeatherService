@@ -25,11 +25,11 @@ namespace WeatherService
 
         #region Events
       
-        private void FireDeviceRefreshed(DeviceBase oDevice)
+        private void FireDeviceRefreshed(DeviceBase device)
         {
-            WeatherServiceDuplex.FireNotification(oDevice);
+            WeatherServiceDuplex.FireNotification(device);
 
-            _hubContext.Clients.All.addMessage(oDevice.ToJson());
+            _hubContext.Clients.All.DeviceRefreshed(device);
         }
 
         #endregion

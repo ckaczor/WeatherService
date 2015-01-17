@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.SignalR;
+﻿using System.Linq;
+using Microsoft.AspNet.SignalR;
 using System.Collections.Generic;
 using WeatherService.Devices;
 using WeatherService.Remote;
@@ -23,19 +24,19 @@ namespace WeatherService.SignalR
             return WeatherServiceCommon.GetDeviceHistory(deviceAddress);
         }
 
-        public Dictionary<DeviceBase, List<ReadingBase>> GetDeviceHistoryByValueType(WeatherValueType valueType)
+        public List<KeyValuePair<DeviceBase, List<ReadingBase>>> GetDeviceHistoryByValueType(WeatherValueType valueType)
         {
-            return WeatherServiceCommon.GetDeviceHistoryByValueType(valueType);
+            return WeatherServiceCommon.GetDeviceHistoryByValueType(valueType).ToList();
         }
 
-        public Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes)
+        public List<KeyValuePair<string, List<WindSpeedReading>>> GetWindSpeedHistory(int groupIntervalMinutes)
         {
-            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes);
+            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes).ToList();
         }
 
-        public Dictionary<string, int> GetWindDirectionHistory()
+        public List<KeyValuePair<string, int>> GetWindDirectionHistory()
         {
-            return WeatherServiceCommon.GetWindDirectionHistory();
+            return WeatherServiceCommon.GetWindDirectionHistory().ToList();
         }
     }
 }

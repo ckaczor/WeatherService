@@ -17,7 +17,7 @@ namespace WeatherService.Remote
 
         public static ReadingBase GetLatestReading(string deviceAddress, WeatherValueType valueType)
         {
-            DeviceBase deviceBase = Program.Session.Devices.Where(d => d.Address == deviceAddress).FirstOrDefault();
+            var deviceBase = Program.Session.Devices.FirstOrDefault(d => d.Address == deviceAddress);
 
             if (deviceBase == null)
                 return null;
@@ -27,12 +27,12 @@ namespace WeatherService.Remote
 
         public static DeviceHistory GetDeviceHistory(string deviceAddress)
         {
-            DeviceBase deviceBase = Program.Session.Devices.Where(d => d.Address == deviceAddress).FirstOrDefault();
+            var deviceBase = Program.Session.Devices.FirstOrDefault(d => d.Address == deviceAddress);
 
             if (deviceBase == null)
                 return null;
 
-            DeviceHistory deviceHistory = new DeviceHistory();
+            var deviceHistory = new DeviceHistory();
 
             foreach (var valueEntry in deviceBase.Values)
             {
@@ -46,7 +46,7 @@ namespace WeatherService.Remote
         {
             var devices = Program.Session.Devices.Where(d => d.SupportedValues.Contains(valueType));
 
-            Dictionary<DeviceBase, List<ReadingBase>> deviceHistoryList = new Dictionary<DeviceBase, List<ReadingBase>>();
+            var deviceHistoryList = new Dictionary<DeviceBase, List<ReadingBase>>();
 
             foreach (var device in devices)
             {
@@ -60,20 +60,20 @@ namespace WeatherService.Remote
         {
             var windSpeedHistory = new Dictionary<string, List<WindSpeedReading>>();
 
-            var device = Program.Session.Devices.Where(d => d.SupportedValues.Contains(WeatherValueType.WindSpeed)).FirstOrDefault();
+            var device = Program.Session.Devices.FirstOrDefault(d => d.SupportedValues.Contains(WeatherValueType.WindSpeed));
 
             if (device == null)
                 return null;
 
             var values = device.GetValue(WeatherValueType.WindSpeed).History;
 
-            TimeSpan interval = new TimeSpan(0, groupIntervalMinutes, 0);
+            var interval = new TimeSpan(0, groupIntervalMinutes, 0);
 
             var groupList = values.GroupBy(reading => reading.ReadTime.Ticks / interval.Ticks).Select(d => new
             {
                 ReadTime = new DateTime(d.Key * interval.Ticks),
                 Readings = d.Select(r => r.Value)
-            });
+            }).ToList();
 
             windSpeedHistory["Average"] = groupList.Select(d => new WindSpeedReading(WeatherValueType.WindSpeed) { ReadTime = d.ReadTime, Value = d.Readings.Average() }).ToList();
             windSpeedHistory["Minimum"] = groupList.Select(d => new WindSpeedReading(WeatherValueType.WindSpeed) { ReadTime = d.ReadTime, Value = d.Readings.Min() }).ToList();
@@ -84,7 +84,7 @@ namespace WeatherService.Remote
 
         public static Dictionary<string, int> GetWindDirectionHistory()
         {
-            var device = Program.Session.Devices.Where(d => d.SupportedValues.Contains(WeatherValueType.WindDirection)).FirstOrDefault();
+            var device = Program.Session.Devices.FirstOrDefault(d => d.SupportedValues.Contains(WeatherValueType.WindDirection));
 
             if (device == null)
                 return null;

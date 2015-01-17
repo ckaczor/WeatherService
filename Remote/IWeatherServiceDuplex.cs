@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ServiceModel;
 using WeatherService.Devices;
-using WeatherService.Remote;
 using WeatherService.Values;
 
-namespace WeatherService
+namespace WeatherService.Remote
 {
     [ServiceContract(CallbackContract = typeof(IWeatherServiceCallback))]
     public interface IWeatherServiceDuplex

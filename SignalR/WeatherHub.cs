@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNet.SignalR;
+﻿using Microsoft.AspNet.SignalR;
+using System.Collections.Generic;
 using WeatherService.Devices;
 using WeatherService.Remote;
+using WeatherService.Values;
 
 namespace WeatherService.SignalR
 {
@@ -9,11 +10,32 @@ namespace WeatherService.SignalR
     {
         public List<DeviceBase> GetDevices()
         {
-            var devices = WeatherServiceCommon.GetDevices();
+            return WeatherServiceCommon.GetDevices();
+        }
 
-            //var json = JsonConvert.SerializeObject(devices);
+        public ReadingBase GetLatestReading(string deviceAddress, WeatherValueType valueType)
+        {
+            return WeatherServiceCommon.GetLatestReading(deviceAddress, valueType);
+        }
 
-            return devices;
+        public DeviceHistory GetDeviceHistory(string deviceAddress)
+        {
+            return WeatherServiceCommon.GetDeviceHistory(deviceAddress);
+        }
+
+        public Dictionary<DeviceBase, List<ReadingBase>> GetDeviceHistoryByValueType(WeatherValueType valueType)
+        {
+            return WeatherServiceCommon.GetDeviceHistoryByValueType(valueType);
+        }
+
+        public Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes)
+        {
+            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes);
+        }
+
+        public Dictionary<string, int> GetWindDirectionHistory()
+        {
+            return WeatherServiceCommon.GetWindDirectionHistory();
         }
     }
 }

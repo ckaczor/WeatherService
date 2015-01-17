@@ -1,9 +1,9 @@
 ﻿using System.ServiceModel;
 using WeatherService.Devices;
 
-namespace WeatherService
+namespace WeatherService.Remote
 {
-    public interface IWeatherServiceCallback
+    public interface IWeatherServiceCallback : ICommunicationObject
     {
         [OperationContract(IsOneWay = true)]
         void OnDeviceUpdate(DeviceBase device);

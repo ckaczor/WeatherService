@@ -151,12 +151,10 @@
       <DependentUpon>WindowsServiceInstaller.cs</DependentUpon>
     </Compile>
     <Compile Include="Remote\DeviceHistory.cs" />
-    <Compile Include="Remote\IWeatherService.cs" />
     <Compile Include="Remote\IWeatherServiceDuplex.cs" />
     <Compile Include="Remote\IWeatherServiceCallback.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Remote\WeatherService.cs" />
     <Compile Include="Remote\WeatherServiceCommon.cs" />
     <Compile Include="Remote\WeatherServiceDuplex.cs" />
     <Compile Include="ServiceImplementation.cs" />

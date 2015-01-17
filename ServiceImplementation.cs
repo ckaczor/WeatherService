@@ -1,11 +1,11 @@
 ﻿using Common.Debug;
 using Microsoft.Owin.Hosting;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel.Web;
 using System.ServiceProcess;
 using WeatherService.Framework;
+using WeatherService.Remote;
 using WeatherService.SignalR;
 
 namespace WeatherService
@@ -13,7 +13,7 @@ namespace WeatherService
     [WindowsService("WeatherReporting", DisplayName = "Weather Reporting", Description = "", StartMode = ServiceStartMode.Automatic, ServiceAccount = ServiceAccount.LocalSystem)]
     public class ServiceImplementation : IWindowsService
     {
-        private List<WebServiceHost> _serviceHosts;
+        private WebServiceHost _serviceHost;
         private IDisposable _signalR;
 
         public void OnStart(string[] args)
@@ -22,13 +22,8 @@ namespace WeatherService
             {
                 try
                 {
-                    _serviceHosts = new List<WebServiceHost>
-                    {
-                        new WebServiceHost(typeof (WeatherService)),
-                        new WebServiceHost(typeof (WeatherServiceDuplex))
-                    };
-
-                    _serviceHosts.ForEach(h => h.Open());
+                    _serviceHost = new WebServiceHost(typeof(WeatherServiceDuplex));
+                    _serviceHost.Open();
 
                     _signalR = WebApp.Start<Startup>(Settings.Default.SignalR_ListenUrl);
                     Trace.Listeners.Remove("HostingTraceListener");
@@ -57,8 +52,7 @@ namespace WeatherService
 
                     _signalR.Dispose();
 
-                    _serviceHosts.ForEach(h => h.Close());
-                    _serviceHosts.Clear();
+                    _serviceHost.Close();
                 }
                 catch (Exception exception)
                 {

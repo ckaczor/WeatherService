@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.ServiceModel;
 using WeatherService.Devices;
-using WeatherService.Remote;
 using WeatherService.Values;
 
-namespace WeatherService
+namespace WeatherService.Remote
 {
     [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Reentrant)]
     public class WeatherServiceDuplex : IWeatherServiceDuplex
     {
-        private static readonly List<IWeatherServiceCallback> subscribers = new List<IWeatherServiceCallback>();
+        private static readonly List<IWeatherServiceCallback> Subscribers = new List<IWeatherServiceCallback>();
 
         public List<DeviceBase> GetDevices()
         {
@@ -45,10 +44,10 @@ namespace WeatherService
         {
             try
             {
-                IWeatherServiceCallback callback = OperationContext.Current.GetCallbackChannel<IWeatherServiceCallback>();
+                var callback = OperationContext.Current.GetCallbackChannel<IWeatherServiceCallback>();
 
-                if (!subscribers.Contains(callback))
-                    subscribers.Add(callback);
+                if (!Subscribers.Contains(callback))
+                    Subscribers.Add(callback);
 
                 return true;
             }
@@ -62,10 +61,10 @@ namespace WeatherService
         {
             try
             {
-                IWeatherServiceCallback callback = OperationContext.Current.GetCallbackChannel<IWeatherServiceCallback>();
+                var callback = OperationContext.Current.GetCallbackChannel<IWeatherServiceCallback>();
 
-                if (subscribers.Contains(callback))
-                    subscribers.Remove(callback);
+                if (Subscribers.Contains(callback))
+                    Subscribers.Remove(callback);
 
                 return true;
             }
@@ -81,7 +80,7 @@ namespace WeatherService
             var removeList = new List<IWeatherServiceCallback>();
 
             // Loop over each subscriber
-            foreach (var callback in subscribers)
+            foreach (var callback in Subscribers)
             {
                 // If the callback connection isn't open...
                 if ((callback as ICommunicationObject).State != CommunicationState.Opened)
@@ -105,7 +104,7 @@ namespace WeatherService
             }
 
             // Remove all callbacks in the remove list
-            removeList.ForEach(o => subscribers.Remove(o));
+            removeList.ForEach(o => Subscribers.Remove(o));
         }
     }
 }

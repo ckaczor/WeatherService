@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using WeatherService.Devices;
+using WeatherService.Remote;
 using WeatherService.SignalR;
 
 namespace WeatherService

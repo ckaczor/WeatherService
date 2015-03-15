@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using WeatherService.Data;
 using WeatherService.Values;
 using WeatherService.Devices;
+using WeatherService.Reporting;
 
 namespace WeatherService.Remote
 {
@@ -99,6 +102,37 @@ namespace WeatherService.Remote
                 .ToDictionary(r => r.Key, r => r.Count());
 
             return grouped;
+        }
+
+        public static List<DailySummary> GetDailySummary(int deviceId, int valueType, DateTime startDate, DateTime endDate)
+        {
+            var summaryList = new List<DailySummary>();
+
+            for (var year = startDate.Year; year <= endDate.Year; year++)
+            {
+                using (var archiveData = new WeatherArchiveData(year))
+                {
+                    var groupedReadings = archiveData.Readings
+                        .Where(r => r.ReadTime >= startDate &&
+                                    r.ReadTime <= endDate &&
+                                    r.DeviceId == deviceId &&
+                                    r.Type == valueType)
+                        .GroupBy(r => DbFunctions.TruncateTime(r.ReadTime))
+                        .Select(r => new DailySummary
+                        {
+                            Date = r.Key,
+                            Count = r.Count(),
+                            Minimum = r.Min(v => v.Value),
+                            Maximum = r.Max(v => v.Value),
+                            Average = r.Average(v => v.Value)
+                        })
+                        .OrderBy(d => d.Date);
+
+                    summaryList.AddRange(groupedReadings);
+                }
+            }
+
+            return summaryList;
         }
     }
 }

@@ -157,6 +157,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Remote\WeatherServiceCommon.cs" />
     <Compile Include="Remote\WeatherServiceDuplex.cs" />
+    <Compile Include="Reporting\DailySummary.cs" />
     <Compile Include="ServiceImplementation.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="Settings.Designer.cs">

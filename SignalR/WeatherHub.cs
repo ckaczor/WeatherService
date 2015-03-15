@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNet.SignalR;
 using System.Collections.Generic;
 using WeatherService.Devices;
 using WeatherService.Remote;
+using WeatherService.Reporting;
 using WeatherService.Values;
 
 namespace WeatherService.SignalR
@@ -37,6 +39,11 @@ namespace WeatherService.SignalR
         public List<KeyValuePair<string, int>> GetWindDirectionHistory()
         {
             return WeatherServiceCommon.GetWindDirectionHistory().ToList();
+        }
+
+        public List<DailySummary> GetDailySummary(int deviceId, int valueType, DateTime startDate, DateTime endDate)
+        {
+            return WeatherServiceCommon.GetDailySummary(deviceId, valueType, startDate, endDate);
         }
     }
 }

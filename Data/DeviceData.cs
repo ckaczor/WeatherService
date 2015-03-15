@@ -17,5 +17,7 @@ namespace WeatherService.Data
         public string Name { get; set; }
 
         public int ReadInterval { get; set; }
+
+        public bool Indoor { get; set; }
     }
 }

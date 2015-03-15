@@ -71,6 +71,9 @@ namespace WeatherService.Devices
         public int RefreshFrequency { get; set; }
 
         [DataMember]
+        public bool Indoor { get; set; }
+
+        [DataMember]
         public Dictionary<WeatherValueType, Value> Values { get; protected set; }
 
         public DeviceBase(Session session, Device device, DeviceType deviceType)
@@ -116,6 +119,7 @@ namespace WeatherService.Devices
                     Id = deviceData.Id;
                     DisplayName = deviceData.Name;
                     RefreshFrequency = deviceData.ReadInterval;
+                    Indoor = deviceData.Indoor;
                 }
 
                 return true;
@@ -139,6 +143,7 @@ namespace WeatherService.Devices
                 // Save device data
                 deviceData.Name = DisplayName;
                 deviceData.ReadInterval = RefreshFrequency;
+                deviceData.Indoor = Indoor;
 
                 weatherData.SaveChanges();
             }

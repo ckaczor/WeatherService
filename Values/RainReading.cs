@@ -5,7 +5,7 @@ namespace WeatherService.Values
     [DataContract]
     public class RainReading : ReadingBase
     {
-        public RainReading(WeatherValueType valueType) : base(valueType)
+        public RainReading() : base(WeatherValueType.Rain)
         {
         }
 

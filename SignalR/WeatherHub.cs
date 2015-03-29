@@ -4,7 +4,6 @@ using Microsoft.AspNet.SignalR;
 using System.Collections.Generic;
 using WeatherService.Devices;
 using WeatherService.Remote;
-using WeatherService.Reporting;
 using WeatherService.Values;
 
 namespace WeatherService.SignalR
@@ -16,34 +15,24 @@ namespace WeatherService.SignalR
             return WeatherServiceCommon.GetDevices();
         }
 
-        public ReadingBase GetLatestReading(string deviceAddress, WeatherValueType valueType)
+        public List<KeyValuePair<DeviceBase, List<ReadingBase>>> GetGenericHistory(WeatherValueType valueType, DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetLatestReading(deviceAddress, valueType);
+            return WeatherServiceCommon.GetGenericHistory(valueType, start, end).ToList();
         }
 
-        public DeviceHistory GetDeviceHistory(string deviceAddress)
+        public List<KeyValuePair<string, List<WindSpeedReading>>> GetWindSpeedHistory(int groupIntervalMinutes, DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetDeviceHistory(deviceAddress);
+            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes, start, end).ToList();
         }
 
-        public List<KeyValuePair<DeviceBase, List<ReadingBase>>> GetDeviceHistoryByValueType(WeatherValueType valueType)
+        public List<KeyValuePair<string, int>> GetWindDirectionHistory(DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetDeviceHistoryByValueType(valueType).ToList();
+            return WeatherServiceCommon.GetWindDirectionHistory(start, end).ToList();
         }
 
-        public List<KeyValuePair<string, List<WindSpeedReading>>> GetWindSpeedHistory(int groupIntervalMinutes)
+        public List<KeyValuePair<string, List<ReadingBase>>> GetDailySummary(WeatherValueType valueType, int deviceId, DateTime startDate, DateTime endDate)
         {
-            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes).ToList();
-        }
-
-        public List<KeyValuePair<string, int>> GetWindDirectionHistory()
-        {
-            return WeatherServiceCommon.GetWindDirectionHistory().ToList();
-        }
-
-        public List<DailySummary> GetDailySummary(int deviceId, int valueType, DateTime startDate, DateTime endDate)
-        {
-            return WeatherServiceCommon.GetDailySummary(deviceId, valueType, startDate, endDate);
+            return WeatherServiceCommon.GetDailySummary(valueType, deviceId, startDate, endDate).ToList();
         }
     }
 }

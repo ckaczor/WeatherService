@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using WeatherService.Devices;
 using WeatherService.Values;
@@ -12,24 +13,18 @@ namespace WeatherService.Remote
         List<DeviceBase> GetDevices();
 
         [OperationContract]
-        ReadingBase GetLatestReading(string deviceAddress, WeatherValueType valueType);
-
-        [OperationContract]
         bool Subscribe();
 
         [OperationContract]
         bool Unsubscribe();
 
         [OperationContract]
-        DeviceHistory GetDeviceHistory(string deviceAddress);
+        Dictionary<DeviceBase, List<ReadingBase>> GetGenericHistory(WeatherValueType valueType, DateTimeOffset start, DateTimeOffset end);
 
         [OperationContract]
-        Dictionary<DeviceBase, List<ReadingBase>> GetDeviceHistoryByValueType(WeatherValueType valueType);
+        Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes, DateTimeOffset start, DateTimeOffset end);
 
         [OperationContract]
-        Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes);
-
-        [OperationContract]
-        Dictionary<string, int> GetWindDirectionHistory();
+        Dictionary<string, int> GetWindDirectionHistory(DateTimeOffset start, DateTimeOffset end);
     }
 }

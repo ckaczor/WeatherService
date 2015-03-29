@@ -133,7 +133,6 @@
     <Compile Include="Devices\TemperatureDevice.cs" />
     <Compile Include="Devices\WindDirectionDevice.cs" />
     <Compile Include="Devices\WindSpeedDevice.cs" />
-    <Compile Include="Format.cs" />
     <Compile Include="Framework\ConsoleHarness.cs" />
     <Compile Include="Framework\IWindowsService.cs" />
     <Compile Include="Framework\TypeExtensions.cs" />

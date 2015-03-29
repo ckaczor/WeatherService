@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ServiceModel;
 using WeatherService.Devices;
 using WeatherService.Values;
@@ -15,29 +16,19 @@ namespace WeatherService.Remote
             return WeatherServiceCommon.GetDevices();
         }
 
-        public ReadingBase GetLatestReading(string deviceAddress, WeatherValueType valueType)
+        public Dictionary<DeviceBase, List<ReadingBase>> GetGenericHistory(WeatherValueType valueType, DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetLatestReading(deviceAddress, valueType);
+            return WeatherServiceCommon.GetGenericHistory(valueType, start, end);
         }
 
-        public DeviceHistory GetDeviceHistory(string deviceAddress)
+        public Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes, DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetDeviceHistory(deviceAddress);
+            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes, start, end);
         }
 
-        public Dictionary<DeviceBase, List<ReadingBase>> GetDeviceHistoryByValueType(WeatherValueType valueType)
+        public Dictionary<string, int> GetWindDirectionHistory(DateTimeOffset start, DateTimeOffset end)
         {
-            return WeatherServiceCommon.GetDeviceHistoryByValueType(valueType);
-        }
-
-        public Dictionary<string, List<WindSpeedReading>> GetWindSpeedHistory(int groupIntervalMinutes)
-        {
-            return WeatherServiceCommon.GetWindSpeedHistory(groupIntervalMinutes);
-        }
-
-        public Dictionary<string, int> GetWindDirectionHistory()
-        {
-            return WeatherServiceCommon.GetWindDirectionHistory();
+            return WeatherServiceCommon.GetWindDirectionHistory(start, end);
         }
 
         public bool Subscribe()

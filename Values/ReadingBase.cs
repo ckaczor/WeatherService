@@ -78,20 +78,30 @@ namespace WeatherService.Values
             switch (valueType)
             {
                 case WeatherValueType.Temperature:
-                    return new TemperatureReading(valueType);
+                    return new TemperatureReading();
                 case WeatherValueType.Pressure:
-                    return new PressureReading(valueType);
+                    return new PressureReading();
                 case WeatherValueType.Humidity:
-                    return new HumidityReading(valueType);
+                    return new HumidityReading();
                 case WeatherValueType.WindSpeed:
-                    return new WindSpeedReading(valueType);
+                    return new WindSpeedReading();
                 case WeatherValueType.WindDirection:
-                    return new WindDirectionReading(valueType);
+                    return new WindDirectionReading();
                 case WeatherValueType.Rain:
-                    return new RainReading(valueType);
+                    return new RainReading();
                 default:
                     throw new ArgumentOutOfRangeException("valueType");
             }
+        }
+
+        public static ReadingBase CreateReading(WeatherValueType valueType, DateTime readTime, double value)
+        {
+            var reading = CreateReading(valueType);
+
+            reading.ReadTime = readTime;
+            reading.Value = value;
+
+            return reading;
         }
 
         #endregion
